@@ -13,9 +13,57 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
+//! STUN Message Structure
+//!
+//!```norust
+//!       0                   1                   2                   3
+//!       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+//!      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//!      |0 0|     STUN Message Type     |         Message Length        |
+//!      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//!      |                         Magic Cookie                          |
+//!      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//!      |                                                               |
+//!      |                     Transaction ID (96 bits)                  |
+//!      |                                                               |
+//!      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//!```
 
-pub fn hello(name: &str) -> String {
-    format!("Hello {name} =]")
+/// TransactionId
+///
+///```norust
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///      |                                                               |
+///      |                     Transaction ID (96 bits)                  |
+///      |                                                               |
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///```
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TransactionId([u8; 12]);
+
+impl Default for TransactionId {
+    fn default() -> Self {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        use std::time::SystemTime;
+
+        let mut hasher = DefaultHasher::new();
+        SystemTime::now().hash(&mut hasher);
+        let hash = hasher.finish();
+
+        let mut transaction_id = [0u8; 12];
+        let hash_bytes = hash.to_le_bytes();
+        transaction_id[0..8].copy_from_slice(&hash_bytes);
+
+        // Fill remaining bytes with more entropy
+        let nanos = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .subsec_nanos();
+        transaction_id[8..12].copy_from_slice(&nanos.to_le_bytes());
+
+        Self(transaction_id)
+    }
 }
 
 #[cfg(test)]
@@ -24,9 +72,8 @@ mod tests {
 
     #[test]
     fn check_hello() {
-        let name = "stun";
-        let msg = hello(name);
-
-        assert!(msg.contains(name))
+        let t1 = TransactionId::default();
+        let t2 = TransactionId::default();
+        assert_ne!(t1, t2)
     }
 }

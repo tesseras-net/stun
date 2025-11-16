@@ -14,7 +14,8 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
+use stun::TransactionId;
+
 fn main() {
-    let msg = stun::hello("stun");
-    println!("{msg}");
+    let _t1 = TransactionId::default();
 }
