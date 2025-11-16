@@ -28,7 +28,7 @@ publish:
   #!/usr/bin/env bash
   set -euxo pipefail
   rm -rf tmp/release
-  git clone git@github.com
+  git clone git@github.com:tesseras-net/stun.git
   VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
   cd tmp/release
   git tag -a $VERSION -m "Release $VERSION"
