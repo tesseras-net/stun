@@ -41,6 +41,28 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TransactionId([u8; 12]);
 
+impl TryFrom<&[u8]> for TransactionId {
+    type Error = &'static str;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        let mut transaction_id = [0u8; 12];
+        transaction_id.copy_from_slice(value);
+
+        if value.len() == 12 {
+            Ok(Self(transaction_id))
+        } else {
+            // TODO(msi): Move to Error
+            Err("Invalid transaction id size")
+        }
+    }
+}
+
+impl TransactionId {
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl Default for TransactionId {
     fn default() -> Self {
         use std::collections::hash_map::DefaultHasher;
@@ -71,7 +93,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn check_hello() {
+    fn transaction_id_from_bytes() {
+        let bytes = [1u8; 12];
+        let res = TransactionId::try_from(bytes.as_slice());
+        assert!(res.is_ok());
+        assert_eq!(&bytes, res.unwrap().as_bytes());
+    }
+
+    #[test]
+    fn transaction_bytes() {
+        let bytes = [1u8; 12];
+        let t1 = TransactionId(bytes);
+        assert_eq!(&bytes, t1.as_bytes())
+    }
+
+    #[test]
+    fn pseudo_random_transaction() {
         let t1 = TransactionId::default();
         let t2 = TransactionId::default();
         assert_ne!(t1, t2)
