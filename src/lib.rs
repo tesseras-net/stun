@@ -166,6 +166,10 @@ impl Client {
         Ok(Client { socket, server_addr })
     }
 
+    pub fn from_google() -> Result<Self, StunError> {
+        Self::from_hostname("stun.l.google.com:19302")
+    }
+
     /// Creates a new STUN client by resolving a hostname
     ///
     /// This method performs DNS resolution to convert hostnames to IP addresses.
