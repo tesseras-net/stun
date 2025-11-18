@@ -14,8 +14,12 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
-use stun::TransactionId;
+use stun::Client;
 
-fn main() {
-    let _t1 = TransactionId::default();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_hostname("stun.l.google.com:19302")?;
+    let public_addr = client.get_public_address()?;
+    println!("Your public address: {}", public_addr);
+
+    Ok(())
 }
